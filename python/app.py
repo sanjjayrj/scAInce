@@ -548,35 +548,56 @@ def main():
 
 app = FastAPI(title="Concept Explanation API", version="1.0")
 
-@app.post("/chat")
-def chat_endpoint(request):
-    """
-    POST /chat
-    JSON body: { "prompt": "...", "mode": "explain" or "visual" }
-    """
-    # try:
-    intent = get_intent(request.prompt)
 
-    if intent == "tutoring":
-        subject = get_subject(request.prompt)
-        print(f"Subject: {subject}")
-        if subject == "Math":
-            print("This is a Math-related query.")
-            return math(request.prompt)["responseData"]
-        else:
-            pass
-    # except Exception as e:
-    #     raise HTTPException(status_code=500, detail=str(e))
-    
-@app.post("/quiz")
-def chat_endpoint(request):
+class ChatRequest(BaseModel):
+    prompt: str
+
+
+@app.post("/chat")
+def chat_endpoint(request: ChatRequest):
     """
     POST /chat
     JSON body: { "prompt": "...", "mode": "explain" or "visual" }
     """
     try:
-      history = get_intent(request.chat_history)
-      print(f"History: {history}")
+        intent = get_intent(request.prompt)
+
+        if intent == "tutoring":
+            subject = get_subject(request.prompt)
+            print(f"Subject: {subject}")
+            if subject == "Math":
+                print("This is a Math-related query.")
+                return math(request.prompt)["responseData"]
+            if subject == "Math":
+                print("This is a Math-related query.")
+                return math(user_input)
+            elif subject == "Chemistry":
+                print("This is a Chemistry-related query.")
+                return phyChem(user_input)
+            elif subject == "History":
+                print("This is a History-related query.")
+                return youtube_links(user_input)
+            elif subject == "English":
+                print("This is an English-related query.")
+                return youtube_links(user_input)
+            elif subject == "Geography":
+                print("This is a Geography-related query.")
+                return youtube_links(user_input)
+            elif subject == "Physics":
+                print("This is a Physics-related query.")
+                return phyChem(user_input)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+@app.post("/quiz")
+def chat_endpoint(request: ChatRequest):
+    """
+    POST /chat
+    JSON body: { "prompt": "...", "mode": "explain" or "visual" }
+    """
+    try:
+        history = get_intent(request.chat_history)
+        print(f"History: {history}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
