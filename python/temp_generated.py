@@ -1,13 +1,10 @@
 from manim import *
 
-class SineWave(Scene):
+class BallRollingDownHill(Scene):
     def construct(self):
-        axes = Axes(
-            x_range=[0, 10, 1],
-            y_range=[-1.5, 1.5, 0.5],
-            axis_config={"color": BLUE}
-        )
+        ground = Line(LEFT * 4, RIGHT * 4)
+        hill = Line(LEFT * 4, RIGHT * 2 + DOWN * 2)
+        ball = Dot(color=RED).shift(LEFT * 4 + UP * 0.1)
 
-        sine_wave = axes.plot(lambda x: np.sin(x), color=YELLOW)
-        self.add(axes, sine_wave)
-        self.play(Create(sine_wave), run_time=4)
+        self.add(ground, hill, ball)
+        self.play(ball.animate.move_to(RIGHT * 2 + DOWN * 2.1), run_time=3, rate_func=rate_functions.ease_in_quad)

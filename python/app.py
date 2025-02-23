@@ -2,6 +2,7 @@ import re
 import os
 import sys
 import json
+import ffmpeg
 import openai
 import subprocess
 from dotenv import load_dotenv
@@ -16,6 +17,21 @@ from fastapi import FastAPI, HTTPException
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
+def reencode_video(input_path, output_path):
+    try:
+        # Re-encode video using ffmpeg
+        ffmpeg.input(input_path).output(
+            output_path,
+            vcodec='libx264',    # Video codec
+            crf=23,              # Quality
+            preset='medium',     # Encoding speed
+            acodec='aac',        # Audio codec
+            audio_bitrate='192k' # Audio bitrate
+        ).run(overwrite_output=True)
+
+        print(f"[DEBUG] Video re-encoded successfully: {output_path}")
+    except ffmpeg.Error as e:
+      print("[ERROR] FFmpeg error:", e)
 
 def get_intent(user_input):
     prompt = (
@@ -179,8 +195,8 @@ def run_generated_code(code):
                     os.getcwd(), "media", "videos", "temp_generated", "480p15", f"{scene_class}.mp4"
                 )
 
-                destination_dir = os.path.join(os.getcwd(), "..", "app", "public", "videos")
-                return_dir = os.path.join("videos", f"{scene_class}.mp4")
+                destination_dir = os.path.join(os.getcwd(), "..", "scAInce", "public", "videos")
+                return_dir = os.path.join("/videos", f"{scene_class}.mp4")
 
                 os.makedirs(destination_dir, exist_ok=True)  # Ensure directory exists
                 final_video_path = os.path.join(destination_dir, f"{scene_class}.mp4")
@@ -190,7 +206,6 @@ def run_generated_code(code):
                     shutil.move(original_video_path, final_video_path)
                 else:
                     print("[WARNING] Generated video not found at:", original_video_path)
-
 
                 # print(f"[DEBUG] Video Path: {video_path if video_path != 'Not found' else 'No output found'}")
                 return {"execution_type": "manim", "output_log": output_log, "video_path": return_dir}, return_dir
@@ -597,6 +612,9 @@ def main():
     else:
         print("Input not related to tutoring.")
 
+# Implement Main
+if __name__ == "__main__":
+    main()
 
 app = FastAPI(title="Concept Explanation API", version="1.0")
 

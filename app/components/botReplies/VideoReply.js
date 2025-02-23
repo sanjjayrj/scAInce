@@ -3,57 +3,61 @@ import styles from "./VideoReply.module.css";
 
 export default function VideoReply({ url }) {
   const [videoSrc, setVideoSrc] = useState("");
-
-  function getTailPath(filePath) {
-    const parts = filePath.split("/"); // Split using "/" for UNIX paths
-    const index = parts.indexOf("python"); // Find the index of "python"
-
-    if (index !== -1) {
-      return parts.slice(index).join("/"); // Return everything after "python"
-    }
-    console.warn("getTailPath: 'python' not found in filePath:", filePath);
-    return filePath; // Return unchanged if "python" is not found
-  }
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    let blobUrl = null; // To store blob URL for cleanup
-
-    if (url.startsWith("/")) {
-      const modUrl = getTailPath(url);
-
-      fetch(modUrl)
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error(`Failed to fetch video: ${response.statusText}`);
-          }
-          return response.blob();
-        })
-        .then((blob) => {
-          blobUrl = URL.createObjectURL(blob);
-          setVideoSrc(blobUrl);
-        })
-        .catch((error) => console.error("Error loading video:", error));
-    } else {
-      setVideoSrc(url);
+    if (!url) {
+      console.warn("[DEBUG] No URL provided for VideoReply.");
+      return;
     }
 
+    console.log(`[DEBUG] VideoReply component mounted. Fetching video from: ${url}`);
+
+    let blobUrl = null;
+
+    fetch(url)
+      .then((response) => {
+        console.log(`[DEBUG] Fetch request sent to: ${url}, Status: ${response.status}`);
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch video: ${response.statusText} (Status: ${response.status})`);
+        }
+
+        return response.blob();
+      })
+      .then((blob) => {
+        blobUrl = URL.createObjectURL(blob);
+        console.log(`[DEBUG] Video loaded successfully. Blob URL created: ${blobUrl}`);
+        setVideoSrc(blobUrl);
+      })
+      .catch((err) => {
+        console.error("[DEBUG] Error loading video:", err);
+        setError(`Failed to load video: ${err.message}`);
+      });
+
+    // Cleanup function to revoke blob URL
     return () => {
       if (blobUrl) {
-        URL.revokeObjectURL(blobUrl); // Cleanup blob URL to prevent memory leaks
+        console.log(`[DEBUG] Cleaning up blob URL: ${blobUrl}`);
+        URL.revokeObjectURL(blobUrl);
       }
     };
   }, [url]);
+
+  if (error) {
+    console.warn(`[DEBUG] Video load error: ${error}`);
+    return <p>{error}</p>;
+  }
 
   return (
     <div className={styles.videoContainer}>
       {videoSrc ? (
         <video className={styles.videoFrame} controls>
           <source src={videoSrc} type="video/mp4" />
-          <source src={videoSrc} type="video/webm" />
           <p>Your browser does not support the video tag.</p>
         </video>
       ) : (
-        <p>Loading video...</p>
+        <p>[DEBUG] Loading video from {url}...</p>
       )}
     </div>
   );
