@@ -1,0 +1,9 @@
+.botText {
+  background-color: #586e75;
+  /* e.g., dark solarized gray */
+  color: #eee;
+  padding: 10px;
+  border-radius: 6px;
+  max-width: 80%;
+  margin-bottom: 10px;
+}

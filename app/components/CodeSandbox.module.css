@@ -1,0 +1,18 @@
+.sandboxContainer {
+  border: 1px solid #586e75;
+  background: #073642;
+  padding: 10px;
+  border-radius: 8px;
+  width: 100%;
+  height: 320px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sandpackFrame {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: #002b36;
+}

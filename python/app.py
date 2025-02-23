@@ -7,9 +7,14 @@ import subprocess
 from dotenv import load_dotenv
 import requests
 
+from pydantic import BaseModel
+from fastapi import FastAPI, HTTPException
+
+
 # Load API key from .env file
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
+
 
 def get_intent(user_input):
     prompt = (
@@ -30,6 +35,7 @@ def get_intent(user_input):
     )
     return response.choices[0].message.content.strip()
 
+
 def get_subject(user_input):
     # Replace the prompt below with your ready subject identification prompt.
     subject_prompt = (
@@ -37,10 +43,10 @@ def get_subject(user_input):
         ## Core Rules
             1. **Only respond with one-word subject names** (e.g., "Math", "History", "Chemistry", "English", "Geography", "Physics", etc.).
             2. **Do not provide explanations, additional text, or formatting.**
-            3. **Ensure the subject classification is accurate based on the question’s content.**
+            3. **Ensure the subject classification is accurate based on the question\u2019s content.**
             4. **If the subject is unclear, return "General".**
-            5. **Never ask for clarification—make the best classification based on the given question.**
-            6. **Do not return topics or descriptions—only the academic subject name.**
+            5. **Never ask for clarification\u2014make the best classification based on the given question.**
+            6. **Do not return topics or descriptions\u2014only the academic subject name.**
 
         ---
 
@@ -88,6 +94,7 @@ def get_subject(user_input):
     )
     return response.choices[0].message.content.strip()
 
+
 def query_openai(system_prompt, user_input):
     response = openai.ChatCompletion.create(
         model="gpt-4o",
@@ -99,6 +106,7 @@ def query_openai(system_prompt, user_input):
     )
     return response.choices[0].message.content.strip()
 
+
 def query_perplexity(system_prompt, user_input):
     url = "https://api.perplexity.ai/chat/completions"
 
@@ -108,7 +116,7 @@ def query_perplexity(system_prompt, user_input):
         "messages": [
             {"role": "user", "content": user_input}
         ],
-        "temperature" : 0.1
+        "temperature": 0.1
     }
 
     headers = {
@@ -117,6 +125,7 @@ def query_perplexity(system_prompt, user_input):
     }
 
     return requests.request("POST", url, json=payload, headers=headers)
+
 
 def codegen_openai(system_prompt, user_input):
     response = openai.ChatCompletion.create(
@@ -129,34 +138,40 @@ def codegen_openai(system_prompt, user_input):
     )
     return response.choices[0].message.content.strip()
 
+
 def clean_code(code: str) -> str:
     return code.strip().strip("`")
 
+
 def extract_code(response_text):
-    code_blocks = re.findall(r"```(?:python)?(.*?)```", response_text, re.DOTALL)
+    code_blocks = re.findall(r"```(?:python)?(.*?)```",
+                             response_text, re.DOTALL)
     return "\n\n".join(block.strip() for block in code_blocks) if code_blocks else ""
+
 
 def run_generated_code(code):
     temp_filename = "temp_generated.py"
     print("[DEBUG] Saving generated code to:", temp_filename)
-    
+
     with open(temp_filename, "w") as f:
         f.write(code)
-    
+
     try:
         if "from manim import" in code:
             print("[DEBUG] Detected Manim script. Searching for Scene class...")
 
             match = re.search(r"class\s+(\w+)\(Scene\):", code)
             scene_class = match.group(1) if match else None
-            
+
             if scene_class:
-                print(f"[DEBUG] Found Scene class: {scene_class}. Executing Manim...")
+                print(
+                    f"[DEBUG] Found Scene class: {scene_class}. Executing Manim...")
                 cmd = ["manim", "-pql", temp_filename, scene_class]
                 print("[DEBUG] Running command:", " ".join(cmd))
-                
-                proc = subprocess.run(cmd, capture_output=True, text=True, check=True)
-                
+
+                proc = subprocess.run(
+                    cmd, capture_output=True, text=True, check=True)
+
                 output_log = proc.stdout + "\n" + proc.stderr
 
                 video_path = os.getcwd() + "/media/temp_generated/480p15/" + scene_class + ".mp4"
@@ -168,9 +183,10 @@ def run_generated_code(code):
                 print("[DEBUG] No Scene class found. Skipping Manim execution.")
 
         print("[DEBUG] Running as standard Python script...")
-        proc = subprocess.run([sys.executable, temp_filename], capture_output=True, text=True, check=True)
+        proc = subprocess.run([sys.executable, temp_filename],
+                              capture_output=True, text=True, check=True)
         output_log = proc.stdout + "\n" + proc.stderr
-        
+
         print("[DEBUG] Python script execution completed.")
         return {"execution_type": "python", "output_log": output_log}, video_path
 
@@ -179,12 +195,14 @@ def run_generated_code(code):
         print("[ERROR] STDERR:", e.stderr)
         return {"execution_type": "error", "output_log": f"Execution failed: {e}\n{e.stderr}"}, "Not Found"
 
+
 def append_code_to_content(content: dict, code_prompt_output: str):
     """
     Extracts HTML, CSS, and JS from the `code_prompt_output` and appends it to `content` dictionary.
     """
     # Regular expressions to capture HTML, CSS, and JS content
-    html_match = re.search(r'html:\s*```(.*?)```', code_prompt_output, re.DOTALL)
+    html_match = re.search(r'html:\s*```(.*?)```',
+                           code_prompt_output, re.DOTALL)
     css_match = re.search(r'css:\s*```(.*?)```', code_prompt_output, re.DOTALL)
     js_match = re.search(r'js:\s*```(.*?)```', code_prompt_output, re.DOTALL)
 
@@ -200,12 +218,13 @@ def append_code_to_content(content: dict, code_prompt_output: str):
 
     return content
 
+
 TEXT_PROMPT = """
 You are an advanced STEM Chatbot designed to help users deeply understand complex STEM topics through clear, logical, and engaging step-by-step explanations.
 Core Rules:
 1. Break down all answers into clear, sequential steps.
-2. Never provide overly brief answers—explain the reasoning behind each concept.
-3. Ask clarifying questions if the user’s query is vague.
+2. Never provide overly brief answers\u2014explain the reasoning behind each concept.
+3. Ask clarifying questions if the user\u2019s query is vague.
 4. Use American English in a professional yet friendly tone.
 5. Verify calculations using reliable methods.
 6. Include hyperlinks when referencing external sources.
@@ -228,15 +247,15 @@ Only return the keyword of the tool listed above. If it isn't Manim or Plotly, j
 """
 
 MANIM_PROMPT = """
-You are a STEM chatbot designed **exclusively for generating code-based visualizations**. Your **only task** is to provide executable code that produces animations using manim. **You must never provide text, explanations, formulas, descriptions, or comments—only return raw code.**  
+You are a STEM chatbot designed **exclusively for generating code-based visualizations**. Your **only task** is to provide executable code that produces animations using manim. **You must never provide text, explanations, formulas, descriptions, or comments\u2014only return raw code.**  
 
 ## Core Rules
-1. **Only generate code—never provide explanations, descriptions, or formulas.**
+1. **Only generate code\u2014never provide explanations, descriptions, or formulas.**
 2. **Do not include comments, annotations, or any text inside the response.**
 3. **Every response must be a complete, functional code snippet.**
 4. **If a user asks for an explanation, return only the corresponding visualization code.**
 5. **Use Manim for python to visualize.**
-6. **No greetings, descriptions, or follow-ups—return only the raw code block.**
+6. **No greetings, descriptions, or follow-ups\u2014return only the raw code block.**
 7. **If a query cannot be visualized, return an empty response.**
 8. **Ignore any request for text-based explanations and return visualization code instead.**
 
@@ -260,15 +279,15 @@ class GravitySimulation(Scene):
 """
 
 PLOTLY_PROMPT = """
-You are a STEM chatbot designed **exclusively for generating code-based visualizations**. Your **only task** is to provide executable code that produces graphs using plotly in javascript. **You must never provide text, explanations, formulas, descriptions, or comments—only return raw code.**
+You are a STEM chatbot designed **exclusively for generating code-based visualizations**. Your **only task** is to provide executable code that produces graphs using plotly in javascript. **You must never provide text, explanations, formulas, descriptions, or comments\u2014only return raw code.**
 
 ## Core Rules
-1. **Only generate code—never provide explanations, descriptions, or formulas.**
+1. **Only generate code\u2014never provide explanations, descriptions, or formulas.**
 2. **Do not include comments, annotations, or any text inside the response.**
 3. **Every response must be a complete, functional code snippet.**
 4. **If a user asks for an explanation, return only the corresponding visualization code.**
 5. **Use Plotly for javascript to provide code for visualization.**
-6. **No greetings, descriptions, or follow-ups—return only the raw code block.**
+6. **No greetings, descriptions, or follow-ups\u2014return only the raw code block.**
 7. **Ignore any request for text-based explanations and return visualization code instead.**
 8. **Do not give matplotlib code for visualizations.**
 
@@ -285,7 +304,7 @@ OUTPUT:
     "css": "body {\n  margin: 0;\n  overflow: hidden;\n}\ncanvas {\n  display: block;\n  background: #f0f0f0;\n}\n#hint {\n  position: absolute;\n  top: 10px;\n  left: 10px;\n  padding: 6px 10px;\n  background: rgba(0, 0, 0, 0.7);\n  color: #fff;\n  font-family: sans-serif;\n  border-radius: 4px;\n  z-index: 9999;\n}",
     "js": "const canvas = document.getElementById('canvas');\nconst ctx = canvas.getContext('2d');\ncanvas.width = window.innerWidth;\ncanvas.height = window.innerHeight;\n\n// Triangle corners (draggable)\nlet points = [\n  { x: 100, y: 300, dragging: false },\n  { x: 100, y: 100, dragging: false },\n  { x: 300, y: 300, dragging: false }\n];\n\nfunction drawTriangle() {\n  ctx.clearRect(0, 0, canvas.width, canvas.height);\n\n  ctx.strokeStyle = '#000';\n  ctx.lineWidth = 2;\n  ctx.beginPath();\n  ctx.moveTo(points[0].x, points[0].y);\n  ctx.lineTo(points[1].x, points[1].y);\n  ctx.lineTo(points[2].x, points[2].y);\n  ctx.closePath();\n  ctx.stroke();\n\n  // Fill triangle\n  ctx.fillStyle = 'rgba(0,150,255,0.2)';\n  ctx.fill();\n\n  // Draw draggable points\n  points.forEach(p => {\n    ctx.beginPath();\n    ctx.arc(p.x, p.y, 8, 0, Math.PI * 2);\n    ctx.fillStyle = '#ff0000';\n    ctx.fill();\n  });\n}\n\ndrawTriangle();\n\n// Drag & drop behavior\nfunction onMouseDown(e) {\n  const rect = canvas.getBoundingClientRect();\n  const mouseX = e.clientX - rect.left;\n  const mouseY = e.clientY - rect.top;\n\n  // Check if we're near a point\n  points.forEach(p => {\n    const dx = mouseX - p.x;\n    const dy = mouseY - p.y;\n    if (Math.sqrt(dx * dx + dy * dy) < 10) {\n      p.dragging = true;\n    }\n  });\n}\n\nfunction onMouseMove(e) {\n  const rect = canvas.getBoundingClientRect();\n  const mouseX = e.clientX - rect.left;\n  const mouseY = e.clientY - rect.top;\n\n  points.forEach(p => {\n    if (p.dragging) {\n      p.x = mouseX;\n      p.y = mouseY;\n    }\n  });\n  drawTriangle();\n}\n\nfunction onMouseUp() {\n  points.forEach(p => {\n    p.dragging = false;\n  });\n}\n\ncanvas.addEventListener('mousedown', onMouseDown);\ncanvas.addEventListener('mousemove', onMouseMove);\ncanvas.addEventListener('mouseup', onMouseUp);\n\nwindow.addEventListener('resize', () => {\n  canvas.width = window.innerWidth;\n  canvas.height = window.innerHeight;\n  drawTriangle();\n});"
   },
-  "explanation": "A right triangle is defined by having one angle exactly 90°. In this visualization, you can drag its corners to reshape it. Notice how the angle stays right-angled at one of the corners. Key properties to remember:\n\n1. The right angle (90°) makes the triangle unique among all triangles.\n2. The side opposite the right angle is the hypotenuse (longest side).\n3. The two sides forming the right angle are often called the legs.\n4. The Pythagorean theorem states that a² + b² = c² for right triangles, where c is the hypotenuse and a, b are the legs.\n\nBy dragging the points around, you can see how the triangle’s shape changes. If you keep a 90° angle at one vertex, you’re effectively exploring different right-angled triangles and observing how the side lengths relate."
+  "explanation": "A right triangle is defined by having one angle exactly 90�. In this visualization, you can drag its corners to reshape it. Notice how the angle stays right-angled at one of the corners. Key properties to remember:\n\n1. The right angle (90�) makes the triangle unique among all triangles.\n2. The side opposite the right angle is the hypotenuse (longest side).\n3. The two sides forming the right angle are often called the legs.\n4. The Pythagorean theorem states that a� + b� = c� for right triangles, where c is the hypotenuse and a, b are the legs.\n\nBy dragging the points around, you can see how the triangle\u2019s shape changes. If you keep a 90� angle at one vertex, you\u2019re effectively exploring different right-angled triangles and observing how the side lengths relate."
 }
 ```
 """
@@ -294,9 +313,9 @@ CODE_PROMPT = """
 You are an AI designed to generate code snippets for the user's query. Your task is to provide the user with the most appropriate code snippet based on their query. You can generate code snippets in JavaScript, HTML and CSS.
 
 ## Core Rules
-1. **Only generate code—never provide explanations, descriptions, or formulas.**
+1. **Only generate code\u2014never provide explanations, descriptions, or formulas.**
 2. **If a user asks for an explanation, return only the corresponding visualization code.**
-3. **No greetings, descriptions, or follow-ups—return only the raw code block in the format given at the bottom.**
+3. **No greetings, descriptions, or follow-ups\u2014return only the raw code block in the format given at the bottom.**
 4. **If a query cannot be visualized, return an empty response.**
 5. **Ignore any request for text-based explanations and return visualization code instead.**
 6. **Do not give matplotlib code for visualizations.**
@@ -312,11 +331,11 @@ js: ```console.log("AI-generated JavaScript running!");```
 
 LINK_PROMPT = """
 
-You are an AI designed to **retrieve only YouTube video links** based on a user's query. Your responses **must contain only valid YouTube URLs** and nothing else—no explanations, summaries, citations, or non-YouTube links.
+You are an AI designed to **retrieve only YouTube video links** based on a user's query. Your responses **must contain only valid YouTube URLs** and nothing else\u2014no explanations, summaries, citations, or non-YouTube links.
 
 ## Core Rules
-1. **Only return real YouTube links**—never generate fake or placeholder links.
-2. **Do not provide any explanations, descriptions, or text—only YouTube URLs.**
+1. **Only return real YouTube links**\u2014never generate fake or placeholder links.
+2. **Do not provide any explanations, descriptions, or text\u2014only YouTube URLs.**
 3. **Each link must be on a new line, with no bullet points, formatting, or additional text.**
 4. **If no relevant YouTube videos exist, return an empty response.**
 5. **Never return website citations, summaries, or non-YouTube sources.**
@@ -373,10 +392,10 @@ Here is the history: {history}
 1. **Use only the chat history** to generate the quiz.
 2. **Do not use any external sources, transcripts, or additional content.**
 3. **Identify key concepts, facts, and discussions to form quiz questions.**
-4. **Each quiz should have at least 5–10 questions** based on chat length.
+4. **Each quiz should have at least 5\u201310 questions** based on chat length.
 5. **Keep questions clear, relevant, and well-structured.**
-6. **Avoid unnecessary repetition**—focus on distinct concepts from the chat history.
-7. **Only generate the quiz**—do not explain, summarize, or provide answers unless explicitly requested.
+6. **Avoid unnecessary repetition**\u2014focus on distinct concepts from the chat history.
+7. **Only generate the quiz**\u2014do not explain, summarize, or provide answers unless explicitly requested.
 
 
 The multiple-choice questions generated **must** follow the format below:
@@ -400,6 +419,7 @@ const questions = [
   ];
 """
 
+
 def math(user_query):
     content = {}
     explanation = query_openai(TEXT_PROMPT, user_query)
@@ -410,7 +430,8 @@ def math(user_query):
         code = codegen_openai(MANIM_PROMPT, user_query)
         print(code)
         # Execute the generated code
-        run_result, video_path = run_generated_code(clean_code(extract_code(code)))
+        run_result, video_path = run_generated_code(
+            clean_code(extract_code(code)))
         # Build the JSON response in the required format
         if run_result.get("execution_type") == "manim":
             content["video_path"] = video_path
@@ -425,13 +446,14 @@ def math(user_query):
         content = append_code_to_content(content, code)
 
     result_json = {
-            "responseData": {
-                "type": type,
-                "content": content,
-                "explanation": explanation
-            }
+        "responseData": {
+            "type": type,
+            "content": content,
+            "explanation": explanation
         }
+    }
     print(json.dumps(result_json, indent=4))
+
 
 def phyChem(user_query):
     content = {}
@@ -443,7 +465,8 @@ def phyChem(user_query):
         code = codegen_openai(MANIM_PROMPT, user_query)
         print(code)
         # Execute the generated code
-        run_result, video_path = run_generated_code(clean_code(extract_code(code)))
+        run_result, video_path = run_generated_code(
+            clean_code(extract_code(code)))
         # Build the JSON response in the required format
         if run_result.get("execution_type") == "manim":
             content["Manim"] = video_path
@@ -454,13 +477,14 @@ def phyChem(user_query):
         content = append_code_to_content(content, code)
 
     result_json = {
-            "responseData": {
-                "type": type,
-                "content": content,
-                "explanation": explanation
-            }
+        "responseData": {
+            "type": type,
+            "content": content,
+            "explanation": explanation
         }
+    }
     print(json.dumps(result_json, indent=4))
+
 
 def youtube_links(user_query):
     content = {}
@@ -476,7 +500,8 @@ def youtube_links(user_query):
         citations = response_json.get("citations", [])
 
         # Filter out only YouTube links
-        youtube_links = [link for link in citations if "youtube.com/watch" in link]
+        youtube_links = [
+            link for link in citations if "youtube.com/watch" in link]
 
     except (json.JSONDecodeError, AttributeError):
         youtube_links = []
@@ -492,14 +517,17 @@ def youtube_links(user_query):
     }
     print(json.dumps(result_json, indent=4))
 
+
 def quiz(history):
     quiz_questions = query_openai(QUIZ_PROMPT.format(history=history), history)
     return quiz_questions
+
+
 def main():
     user_input = input("Enter your query: ")
     intent = get_intent(user_input)
     print(f"Intent: {intent}")
-    
+
     if intent == "tutoring":
         subject = get_subject(user_input)
         print(f"Subject: {subject}")
@@ -523,6 +551,45 @@ def main():
             return phyChem(user_input)
     else:
         print("Input not related to tutoring.")
+
+
+if __name__ == "__main__":
+    main()
+
+
+app = FastAPI(title="Concept Explanation API", version="1.0")
+
+@app.post("/chat")
+def chat_endpoint(request: ChatRequest):
+    """
+    POST /chat
+    JSON body: { "prompt": "...", "mode": "explain" or "visual" }
+    """
+    # try:
+    intent = get_intent(request.prompt)
+
+    if intent == "tutoring":
+        subject = get_subject(request.prompt)
+        print(f"Subject: {subject}")
+        if subject == "Math":
+            print("This is a Math-related query.")
+            return math(request.prompt)["responseData"]
+        else:
+            pass
+    # except Exception as e:
+    #     raise HTTPException(status_code=500, detail=str(e))
+    
+@app.post("/quiz")
+def chat_endpoint(request: ChatRequest):
+    """
+    POST /chat
+    JSON body: { "prompt": "...", "mode": "explain" or "visual" }
+    """
+    try:
+      history = get_intent(request.chat_history)
+      print(f"History: {history}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     main()

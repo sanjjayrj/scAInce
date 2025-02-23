@@ -1,0 +1,27 @@
+/* LoadingAnimation.module.css */
+.loadingContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+}
+
+.loadingText {
+  font-size: 16px;
+  color: #555;
+  animation: fade 2s ease-in-out infinite;
+}
+
+@keyframes fade {
+  0% {
+    opacity: 0;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
