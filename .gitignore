@@ -1,1 +1,5 @@
 .env
+manim.py
+media/
+temp_generated.py
+v1.py
