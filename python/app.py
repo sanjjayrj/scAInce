@@ -195,7 +195,7 @@ def run_generated_code(code):
                     os.getcwd(), "media", "videos", "temp_generated", "480p15", f"{scene_class}.mp4"
                 )
 
-                destination_dir = os.path.join(os.getcwd(), "..", "scAInce", "public", "videos")
+                destination_dir = os.path.join(os.getcwd(), "..", "public", "videos")
                 return_dir = os.path.join("/videos", f"{scene_class}.mp4")
 
                 os.makedirs(destination_dir, exist_ok=True)  # Ensure directory exists
