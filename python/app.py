@@ -578,10 +578,6 @@ def main():
     else:
         print("Input not related to tutoring.")
 
-# run main
-if __name__ == "__main__":
-    main()
-
 
 app = FastAPI(title="Concept Explanation API", version="1.0")
 
@@ -598,15 +594,14 @@ def chat_endpoint(request: ChatRequest):
     """
     try:
         intent = get_intent(request.prompt)
-
         user_input = request.prompt
 
         if intent == "tutoring":
-            subject = get_subject(request.prompt)
+            subject = get_subject(user_input)
             print(f"Subject: {subject}")
             if subject == "Math":
                 print("This is a Math-related query.")
-                return math(request.prompt)["responseData"]
+                return math(user_input)
             if subject == "Math":
                 print("This is a Math-related query.")
                 return math(user_input)

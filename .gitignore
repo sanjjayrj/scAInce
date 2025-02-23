@@ -3,3 +3,6 @@
 .venv
 node_modules
 .env
+legacy
+__pycache__
+temp_generated
