@@ -402,9 +402,10 @@ def math(user_query):
 def phyChem(user_query):
     content = {}
     explanation = query_openai(TEXT_PROMPT, user_query)
-    content["explanation"] = explanation
     tool = query_openai(TOOL_PROMPT, user_query)
+    type = "text"
     if tool == "Manim":
+        type = "Manim"
         code = codegen_openai(MANIM_PROMPT, user_query)
         print(code)
         # Execute the generated code
@@ -413,14 +414,16 @@ def phyChem(user_query):
         if run_result.get("execution_type") == "manim":
             content["Manim"] = video_path
     else:
+        type = "code"
         code = codegen_openai(CODE_PROMPT, user_query)
         print(code)
         content = append_code_to_content(content, code)
 
     result_json = {
             "responseData": {
-                "type": "code",
-                "content": content
+                "type": type,
+                "content": content,
+                "explanation": explanation
             }
         }
     print(json.dumps(result_json, indent=4))
@@ -437,7 +440,8 @@ def youtube_links(user_query):
     result_json = {
         "responseData": {
             "type": "links",
-            "content": content
+            "content": content,
+            "explanation": explanation
         }
     }
     print(json.dumps(result_json, indent=4))
