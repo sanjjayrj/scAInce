@@ -2,7 +2,6 @@ import re
 import os
 import sys
 import json
-import ffmpeg
 import openai
 import subprocess
 from dotenv import load_dotenv
@@ -17,21 +16,7 @@ from fastapi import FastAPI, HTTPException
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-def reencode_video(input_path, output_path):
-    try:
-        # Re-encode video using ffmpeg
-        ffmpeg.input(input_path).output(
-            output_path,
-            vcodec='libx264',    # Video codec
-            crf=23,              # Quality
-            preset='medium',     # Encoding speed
-            acodec='aac',        # Audio codec
-            audio_bitrate='192k' # Audio bitrate
-        ).run(overwrite_output=True)
 
-        print(f"[DEBUG] Video re-encoded successfully: {output_path}")
-    except ffmpeg.Error as e:
-      print("[ERROR] FFmpeg error:", e)
 
 def get_intent(user_input):
     prompt = (
