@@ -434,9 +434,19 @@ def youtube_links(user_query):
     content["explanation"] = explanation
     links = query_perplexity(LINK_PROMPT, user_query)
 
-    youtube_links = [link.strip() for link in links.split("\n") if "youtube.com/watch" in link]
+    try:
+        # Parse the JSON response from Perplexity
+        response_json = json.loads(links.text)
 
-    print(youtube_links)
+        # Extract citations if available
+        citations = response_json.get("citations", [])
+
+        # Filter out only YouTube links
+        youtube_links = [link for link in citations if "youtube.com/watch" in link]
+
+    except (json.JSONDecodeError, AttributeError):
+        youtube_links = []
+
     content["links"] = youtube_links
 
     result_json = {
