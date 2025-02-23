@@ -431,7 +431,7 @@ def math(user_query):
         if run_result.get("execution_type") == "manim":
             content["video_path"] = video_path
     elif tool == "Plotly":
-        type = "Plotly"
+        type = "code"
         code = codegen_openai(PLOTLY_PROMPT, user_query)
         content["Plotly"] = code
     else:
