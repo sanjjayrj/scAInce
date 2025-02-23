@@ -295,30 +295,32 @@ js: ```console.log("AI-generated JavaScript running!");```
 def math(user_query):
     content = {}
     explanation = query_openai(TEXT_PROMPT, user_query)
-    content["explanation"] = explanation
+    type = "text"
     tool = query_openai(TOOL_PROMPT, user_query)
     if tool == "Manim":
+        type = "Manim"
         code = codegen_openai(MANIM_PROMPT, user_query)
         print(code)
         # Execute the generated code
         run_result, video_path = run_generated_code(clean_code(extract_code(code)))
         # Build the JSON response in the required format
         if run_result.get("execution_type") == "manim":
-            content["Manim"] = video_path
+            content["video_path"] = video_path
     elif tool == "Plotly":
-        print(tool, " is being used")
+        type = "Plotly"
         code = codegen_openai(PLOTLY_PROMPT, user_query)
-        print(code)
         content["Plotly"] = code
     else:
+        type = "code"
         code = codegen_openai(CODE_PROMPT, user_query)
         print(code)
         content = append_code_to_content(content, code)
 
     result_json = {
             "responseData": {
-                "type": "code",
-                "content": content
+                "type": type,
+                "content": content,
+                "explanation": explanation
             }
         }
     print(json.dumps(result_json, indent=4))
