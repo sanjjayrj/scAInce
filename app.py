@@ -315,14 +315,14 @@ js: ```console.log("AI-generated JavaScript running!");```
 
 LINK_PROMPT = """
 
-You are an AI designed to **retrieve only YouTube video links** based on a user's query. Your responses must **contain only valid YouTube URLs** and **nothing else**—no explanations, summaries, or additional text.
+You are an AI designed to **retrieve only YouTube video links** based on a user's query. Your responses **must contain only valid YouTube URLs** and nothing else—no explanations, summaries, citations, or non-YouTube links.
 
 ## Core Rules
 1. **Only return real YouTube links**—never generate fake or placeholder links.
-2. **Do not provide any explanations, descriptions, citations, or summaries.**
-3. **Ensure the response contains only YouTube URLs, one per line.**
-4. **If no relevant videos are found, return an empty response.**
-5. **No additional formatting—just raw YouTube links.**
+2. **Do not provide any explanations, descriptions, or text—only YouTube URLs.**
+3. **Each link must be on a new line, with no bullet points, formatting, or additional text.**
+4. **If no relevant YouTube videos exist, return an empty response.**
+5. **Never return website citations, summaries, or non-YouTube sources.**
 
 ---
 
@@ -434,8 +434,10 @@ def youtube_links(user_query):
     content["explanation"] = explanation
     links = query_perplexity(LINK_PROMPT, user_query)
 
-    print(links.text)
-    content["links"] = links.text
+    youtube_links = [link.strip() for link in links.split("\n") if "youtube.com/watch" in link]
+
+    print(youtube_links)
+    content["links"] = youtube_links
 
     result_json = {
         "responseData": {
