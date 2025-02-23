@@ -1,0 +1,41 @@
+/* app/components/botReplies/QuizReply.module.css */
+.quizContainer {
+  margin: 1rem 0;
+  padding: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.chatHistoryPreview {
+  background: #f8f9fa;
+  border: 1px solid #eee;
+  padding: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.questionBlock {
+  margin-bottom: 1rem;
+}
+
+.question {
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.options label {
+  display: block;
+  margin-left: 1.25rem;
+}
+
+.submitButton,
+.retakeButton {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+
+.resultBlock {
+  margin-top: 1rem;
+  padding: 1rem;
+  border-top: 1px solid #ccc;
+}

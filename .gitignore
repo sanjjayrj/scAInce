@@ -1,5 +1,5 @@
+.next
+.python-version
+.venv
+node_modules
 .env
-manim.py
-media/
-temp_generated.py
-v1.py
