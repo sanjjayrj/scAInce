@@ -6,3 +6,4 @@ node_modules
 legacy
 __pycache__
 temp_generated
+public
