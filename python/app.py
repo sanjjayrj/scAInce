@@ -284,24 +284,21 @@ You are a STEM chatbot designed **exclusively for generating code-based visualiz
 ## Core Rules
 1. **Only generate code—never provide explanations, descriptions, or formulas.**
 2. **Do not include comments, annotations, or any text inside the response.**
-3. **Every response must be a complete, functional code snippet using Plotly in JavaScript.**
+3. **Every response must contain three distinct code blocks: HTML, CSS, and JavaScript.**
 4. **Ignore any request for text-based explanations and return visualization code instead.**
-5. **Output must be in JSON format, containing separate HTML, CSS, and JavaScript files.**
-6. **Use Plotly for JavaScript—do not generate code in Python, Matplotlib, or other libraries.**
-7. **No greetings, descriptions, or follow-ups—return only the raw code block.**
+5. **Use Plotly for JavaScript—do not generate code in Python, Matplotlib, or other libraries.**
+6. **No greetings, descriptions, or follow-ups—return only the raw code blocks.**
+7. **The output must be formatted as follows, strictly on three lines.**
 
 ## Expected Behavior
 
 ### User Query: "Visualize a right triangle"
 
 #### OUTPUT:
-```json
-{
-  "html": "<!DOCTYPE html>\n<html lang='en'>\n<head>\n    <meta charset='UTF-8'>\n    <meta name='viewport' content='width=device-width, initial-scale=1.0'>\n    <title>Right Triangle Visualization</title>\n    <link rel='stylesheet' href='styles.css'>\n    <script src='https://cdn.plot.ly/plotly-latest.min.js'></script>\n</head>\n<body>\n    <div id='triangle-plot'></div>\n    <script src='script.js'></script>\n</body>\n</html>",
-  "css": "body {\n    display: flex;\n    justify-content: center;\n    align-items: center;\n    height: 100vh;\n    background-color: #f0f0f0;\n}\n#triangle-plot {\n    width: 600px;\n    height: 600px;\n}",
-  "js": "document.addEventListener('DOMContentLoaded', function() {\n    var trace = {\n        x: [0, 3, 0, 0],\n        y: [0, 0, 4, 0],\n        type: 'scatter',\n        mode: 'lines+markers',\n        marker: { size: 8, color: 'red' },\n        line: { width: 3 }\n    };\n\n    var layout = {\n        title: 'Right Triangle',\n        xaxis: { range: [-1, 5] },\n        yaxis: { range: [-1, 5] },\n        showlegend: false\n    };\n\n    Plotly.newPlot('triangle-plot', [trace], layout);\n});"
-}
-```
+"html": "<!DOCTYPE html>\n<html lang='en'>\n<head>\n    <meta charset='UTF-8'>\n    <meta name='viewport' content='width=device-width, initial-scale=1.0'>\n    <title>Right Triangle Visualization</title>\n    <link rel='stylesheet' href='styles.css'>\n    <script src='https://cdn.plot.ly/plotly-latest.min.js'></script>\n</head>\n<body>\n    <div id='triangle-plot'></div>\n    <script src='script.js'></script>\n</body>\n</html>",
+"css": "body {\n    display: flex;\n    justify-content: center;\n    align-items: center;\n    height: 100vh;\n    background-color: #f0f0f0;\n}\n#triangle-plot {\n    width: 600px;\n    height: 600px;\n}",
+"js": "document.addEventListener('DOMContentLoaded', function() {\n    var trace = {\n        x: [0, 3, 0, 0],\n        y: [0, 0, 4, 0],\n        type: 'scatter',\n        mode: 'lines+markers',\n        marker: { size: 8, color: 'red' },\n        line: { width: 3 }\n    };\n\n    var layout = {\n        title: 'Right Triangle',\n        xaxis: { range: [-1, 5] },\n        yaxis: { range: [-1, 5] },\n        showlegend: false\n    };\n\n    Plotly.newPlot('triangle-plot', [trace], layout);\n});"
+
 """
 
 CODE_PROMPT = """
@@ -545,6 +542,10 @@ def main():
     else:
         print("Input not related to tutoring.")
 
+# run main
+if __name__ == "__main__":
+    main()
+
 
 app = FastAPI(title="Concept Explanation API", version="1.0")
 
@@ -561,6 +562,8 @@ def chat_endpoint(request: ChatRequest):
     """
     try:
         intent = get_intent(request.prompt)
+
+        user_input = request.prompt
 
         if intent == "tutoring":
             subject = get_subject(request.prompt)
