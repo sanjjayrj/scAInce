@@ -274,23 +274,20 @@ You are a STEM chatbot designed **exclusively for generating code-based visualiz
 
 ## Expected Behavior
 
-### User Query: "Can I see a line chart?"
+### User Query: "Visualize a right traingle"
 
 OUTPUT:
-"
-var trace1 = {
-  x: [1, 2, 3, 4],
-  y: [10, 15, 13, 17],
-  type: 'scatter'
-};
-var trace2 = {
-  x: [1, 2, 3, 4],
-  y: [16, 5, 11, 9],
-  type: 'scatter'
-};
-var data = [trace1, trace2];
-Plotly.newPlot('myDiv', data);
-"
+```json
+{
+  "type": "code",
+  "content": {
+    "html": "<!DOCTYPE html>\n<html>\n<head>\n  <meta charset=\"UTF-8\">\n  <title>Right Triangle Visualization</title>\n  <link rel=\"stylesheet\" href=\"styles.css\">\n</head>\n<body>\n  <div id=\"hint\">Drag the corners of the triangle to reshape it.</div>\n  <canvas id=\"canvas\"></canvas>\n  <script src=\"script.js\"></script>\n</body>\n</html>",
+    "css": "body {\n  margin: 0;\n  overflow: hidden;\n}\ncanvas {\n  display: block;\n  background: #f0f0f0;\n}\n#hint {\n  position: absolute;\n  top: 10px;\n  left: 10px;\n  padding: 6px 10px;\n  background: rgba(0, 0, 0, 0.7);\n  color: #fff;\n  font-family: sans-serif;\n  border-radius: 4px;\n  z-index: 9999;\n}",
+    "js": "const canvas = document.getElementById('canvas');\nconst ctx = canvas.getContext('2d');\ncanvas.width = window.innerWidth;\ncanvas.height = window.innerHeight;\n\n// Triangle corners (draggable)\nlet points = [\n  { x: 100, y: 300, dragging: false },\n  { x: 100, y: 100, dragging: false },\n  { x: 300, y: 300, dragging: false }\n];\n\nfunction drawTriangle() {\n  ctx.clearRect(0, 0, canvas.width, canvas.height);\n\n  ctx.strokeStyle = '#000';\n  ctx.lineWidth = 2;\n  ctx.beginPath();\n  ctx.moveTo(points[0].x, points[0].y);\n  ctx.lineTo(points[1].x, points[1].y);\n  ctx.lineTo(points[2].x, points[2].y);\n  ctx.closePath();\n  ctx.stroke();\n\n  // Fill triangle\n  ctx.fillStyle = 'rgba(0,150,255,0.2)';\n  ctx.fill();\n\n  // Draw draggable points\n  points.forEach(p => {\n    ctx.beginPath();\n    ctx.arc(p.x, p.y, 8, 0, Math.PI * 2);\n    ctx.fillStyle = '#ff0000';\n    ctx.fill();\n  });\n}\n\ndrawTriangle();\n\n// Drag & drop behavior\nfunction onMouseDown(e) {\n  const rect = canvas.getBoundingClientRect();\n  const mouseX = e.clientX - rect.left;\n  const mouseY = e.clientY - rect.top;\n\n  // Check if we're near a point\n  points.forEach(p => {\n    const dx = mouseX - p.x;\n    const dy = mouseY - p.y;\n    if (Math.sqrt(dx * dx + dy * dy) < 10) {\n      p.dragging = true;\n    }\n  });\n}\n\nfunction onMouseMove(e) {\n  const rect = canvas.getBoundingClientRect();\n  const mouseX = e.clientX - rect.left;\n  const mouseY = e.clientY - rect.top;\n\n  points.forEach(p => {\n    if (p.dragging) {\n      p.x = mouseX;\n      p.y = mouseY;\n    }\n  });\n  drawTriangle();\n}\n\nfunction onMouseUp() {\n  points.forEach(p => {\n    p.dragging = false;\n  });\n}\n\ncanvas.addEventListener('mousedown', onMouseDown);\ncanvas.addEventListener('mousemove', onMouseMove);\ncanvas.addEventListener('mouseup', onMouseUp);\n\nwindow.addEventListener('resize', () => {\n  canvas.width = window.innerWidth;\n  canvas.height = window.innerHeight;\n  drawTriangle();\n});"
+  },
+  "explanation": "A right triangle is defined by having one angle exactly 90°. In this visualization, you can drag its corners to reshape it. Notice how the angle stays right-angled at one of the corners. Key properties to remember:\n\n1. The right angle (90°) makes the triangle unique among all triangles.\n2. The side opposite the right angle is the hypotenuse (longest side).\n3. The two sides forming the right angle are often called the legs.\n4. The Pythagorean theorem states that a² + b² = c² for right triangles, where c is the hypotenuse and a, b are the legs.\n\nBy dragging the points around, you can see how the triangle’s shape changes. If you keep a 90° angle at one vertex, you’re effectively exploring different right-angled triangles and observing how the side lengths relate."
+}
+```
 """
 
 CODE_PROMPT = """
