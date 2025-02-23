@@ -89,12 +89,12 @@ def get_subject(user_input):
 
 def query_openai(system_prompt, user_input):
     response = openai.ChatCompletion.create(
-        model="gpt-4",
+        model="gpt-4o",
         messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_input}
         ],
-        temperature=0.5,
+        temperature=0.1,
     )
     return response.choices[0].message.content.strip()
 
@@ -292,6 +292,42 @@ css: ```h1 { color: blue; text-align: center; }```,
 js: ```console.log("AI-generated JavaScript running!");```
 
 """
+
+LINK_PROMPT = """
+
+You are a **YouTube link retriever** designed to provide **only relevant YouTube links** for queries related to **English Literature, Geography and History**. Your sole purpose is to find and return the **most relevant YouTube video links** without any explanations, descriptions, or additional text.
+
+## Core Rules
+1. **Only return YouTube video links**—never include explanations or summaries.
+2. **Only respond to queries related to English Literature, Geography or History.**
+3. **If a query is outside these topics, return an empty response.**
+4. **Never introduce responses with greetings or descriptions.**
+5. **No formatting, markdown, or additional text—only plain URLs.**
+6. **If no relevant video is found, return an empty response.**
+7. **Never ask the user if they want YouTube videos—just return the links.**
+
+---
+
+## Expected Response Format
+
+- **User Query:** "Romanticism in literature"  
+  **Response:**  
+  ```
+  https://www.youtube.com/watch?v=acbd1234abc
+  ```
+
+- **User Query:** "History of the French Revolution"  
+  **Response:**  
+  ```
+  https://www.youtube.com/watch?v=acbd1234abc
+  ```
+
+- **User Query:** "Explain Newton’s Laws of Motion"  
+  **Response:** 
+  *(Returns an empty response since the topic is outside English Literature, Geography and History.)*
+
+"""
+
 def math(user_query):
     content = {}
     explanation = query_openai(TEXT_PROMPT, user_query)
@@ -323,6 +359,51 @@ def math(user_query):
         }
     print(json.dumps(result_json, indent=4))
 
+def phyChem(user_query):
+    content = {}
+    explanation = query_openai(TEXT_PROMPT, user_query)
+    content["explanation"] = explanation
+    tool = query_openai(TOOL_PROMPT, user_query)
+    if tool == "Manim":
+        code = codegen_openai(MANIM_PROMPT, user_query)
+        print(code)
+        # Execute the generated code
+        run_result, video_path = run_generated_code(clean_code(extract_code(code)))
+        # Build the JSON response in the required format
+        if run_result.get("execution_type") == "manim":
+            content["Manim"] = video_path
+    else:
+        code = codegen_openai(CODE_PROMPT, user_query)
+        print(code)
+        content = append_code_to_content(content, code)
+
+    result_json = {
+            "responseData": {
+                "type": "code",
+                "content": content
+            }
+        }
+    print(json.dumps(result_json, indent=4))
+
+def youtube_links(user_query):
+    content = {}
+    explanation = query_openai(TEXT_PROMPT, user_query)
+    content["explanation"] = explanation
+    links = query_openai(LINK_PROMPT, user_query)
+
+    if links.strip():
+        content["YouTube_Links"] = links.split("\n")
+    else:
+        content["YouTube_Links"] = []
+
+    result_json = {
+        "responseData": {
+            "type": "links",
+            "content": content
+        }
+    }
+    print(json.dumps(result_json, indent=4))
+
 
 def main():
     user_input = input("Enter your query: ")
@@ -337,14 +418,19 @@ def main():
             return math(user_input)
         elif subject == "Chemistry":
             print("This is a Chemistry-related query.")
+            return phyChem(user_input)
         elif subject == "History":
             print("This is a History-related query.")
+            return youtube_links(user_input)
         elif subject == "English":
             print("This is an English-related query.")
+            return youtube_links(user_input)
         elif subject == "Geography":
             print("This is a Geography-related query.")
+            return youtube_links(user_input)
         elif subject == "Physics":
             print("This is a Physics-related query.")
+            return phyChem(user_input)
     else:
         print("Input not related to tutoring.")
 
