@@ -11,8 +11,14 @@ import YouTubeReply from "./YouTubeReply";
 export default function BotReply({ message }) {
   console.log("BotReply message:", message);
 
-  const type = message.responseData.type;
-  const res = message.responseData;
+  let type;
+  let res;
+  if (!message.responseData) {
+  } else {
+    type = message.responseData.type;
+    res = message.responseData;
+  }
+
 
   console.log("BotReply type:", type);
   switch (type) {
@@ -31,7 +37,7 @@ export default function BotReply({ message }) {
       );
 
     case "quiz":
-      return <QuizReply chatHistory={res.content} />;
+      return <QuizReply chatHistory={message.content} />;
 
     case "localVideo":
       return <LocalVideoReply filepath={res.content} />;

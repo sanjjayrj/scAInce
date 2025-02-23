@@ -653,7 +653,10 @@ def chat_endpoint(request: ChatRequest):
     JSON body: { "prompt": "...", "mode": "explain" or "visual" }
     """
     try:
-        history = get_intent(request.chat_history)
-        print(f"History: {history}")
+        quiz_output = quiz(request.chat_history)
+        if quiz_output.startswith("const questions ="):
+            quiz_output = quiz_output.replace("const questions =", "").strip().rstrip(";")
+        questions = json.loads(quiz_output)
+        return questions
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
