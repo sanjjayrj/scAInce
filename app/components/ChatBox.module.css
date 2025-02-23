@@ -4,7 +4,7 @@
   height: 85vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(135deg, #e1f5fe, #90caf9),
+  background: linear-gradient(135deg, #6daec2, #586e75),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='86.6' viewBox='0 0 100 86.6'%3E%3Cpolygon points='50,0 100,25 100,61.6 50,86.6 0,61.6 0,25' fill='none' stroke='%2364b5f6' stroke-width='1'/%3E%3C/svg%3E");
   background-blend-mode: overlay;
   border-radius: 12px;
