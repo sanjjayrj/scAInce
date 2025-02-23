@@ -26,7 +26,12 @@ export default function BotReply({ message }) {
       return <TextReply content={res.content} />;
 
     case "Manim":
-      return <VideoReply url={res.content} />;
+      return (
+        <div>
+          <VideoReply url={res.content} />
+          <TextReply content={res.explanation} />
+        </div>
+      );
 
     case "code":
       return (
