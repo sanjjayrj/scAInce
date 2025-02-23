@@ -5,6 +5,7 @@ import json
 import openai
 import subprocess
 from dotenv import load_dotenv
+import requests
 
 # Load API key from .env file
 load_dotenv()
@@ -97,6 +98,25 @@ def query_openai(system_prompt, user_input):
         temperature=0.1,
     )
     return response.choices[0].message.content.strip()
+
+def query_perplexity(system_prompt, user_input):
+    url = "https://api.perplexity.ai/chat/completions"
+
+    payload = {
+        "model": "sonar",
+        "prompt": system_prompt,
+        "messages": [
+            {"role": "user", "content": user_input}
+        ],
+        "temperature" : 0.1
+    }
+
+    headers = {
+        "Authorization": f"Bearer {os.getenv('PERPLEXITY_API_KEY')}",
+        "Content-Type": "application/json"
+    }
+
+    return requests.request("POST", url, json=payload, headers=headers)
 
 def codegen_openai(system_prompt, user_input):
     response = openai.ChatCompletion.create(
@@ -295,36 +315,54 @@ js: ```console.log("AI-generated JavaScript running!");```
 
 LINK_PROMPT = """
 
-You are a **YouTube link retriever** designed to provide **only relevant YouTube links** for queries related to **English Literature, Geography and History**. Your sole purpose is to find and return the **most relevant YouTube video links** without any explanations, descriptions, or additional text.
+You are an AI designed to **retrieve only YouTube video links** based on a user's query. Your responses **must contain only valid YouTube URLs** and nothing else—no explanations, summaries, citations, or non-YouTube links.
 
 ## Core Rules
-1. **Only return YouTube video links**—never include explanations or summaries.
-2. **Only respond to queries related to English Literature, Geography or History.**
-3. **If a query is outside these topics, return an empty response.**
-4. **Never introduce responses with greetings or descriptions.**
-5. **No formatting, markdown, or additional text—only plain URLs.**
-6. **If no relevant video is found, return an empty response.**
-7. **Never ask the user if they want YouTube videos—just return the links.**
+1. **Only return real YouTube links**—never generate fake or placeholder links.
+2. **Do not provide any explanations, descriptions, or text—only YouTube URLs.**
+3. **Each link must be on a new line, with no bullet points, formatting, or additional text.**
+4. **If no relevant YouTube videos exist, return an empty response.**
+5. **Never return website citations, summaries, or non-YouTube sources.**
 
 ---
 
 ## Expected Response Format
 
-- **User Query:** "Romanticism in literature"  
+- **User Query:** "Best video explaining the Russian Revolution"  
   **Response:**  
   ```
-  https://www.youtube.com/watch?v=acbd1234abc
+  https://www.youtube.com/watch?v=abc123xyz
+  https://www.youtube.com/watch?v=def456ghi
   ```
 
-- **User Query:** "History of the French Revolution"  
+- **User Query:** "Show me a video about the Pythagorean theorem"  
   **Response:**  
   ```
-  https://www.youtube.com/watch?v=acbd1234abc
+  https://www.youtube.com/watch?v=jkl789mno
   ```
 
-- **User Query:** "Explain Newton’s Laws of Motion"  
-  **Response:** 
-  *(Returns an empty response since the topic is outside English Literature, Geography and History.)*
+- **User Query:** "How does gravity work?"  
+  **Response:**  
+  ```
+  https://www.youtube.com/watch?v=uvw987rst
+  https://www.youtube.com/watch?v=xyz654mnp
+  ```
+
+- **User Query:** "Explain Shakespeare's Hamlet"  
+  **Response:**  
+  ```
+  https://www.youtube.com/watch?v=qrs234tuv
+  ```
+
+- **User Query:** "Tell me about the Industrial Revolution"  
+  **Response:**  
+  ```
+  https://www.youtube.com/watch?v=lmn567opq
+  ```
+
+- **User Query:** "Who is Albert Einstein?" *(Not relevant to YouTube videos)*  
+  **Response:**  
+  *(Returns an empty response.)*
 
 """
 
@@ -430,12 +468,13 @@ def phyChem(user_query):
 def youtube_links(user_query):
     content = {}
     explanation = query_openai(TEXT_PROMPT, user_query)
-    links = query_openai(LINK_PROMPT, user_query)
+    content["explanation"] = explanation
+    links = query_perplexity(LINK_PROMPT, user_query)
 
-    if links.strip():
-        content["YouTube_Links"] = links.split("\n")
-    else:
-        content["YouTube_Links"] = []
+    youtube_links = [link.strip() for link in links.split("\n") if "youtube.com/watch" in link]
+
+    print(youtube_links)
+    content["links"] = youtube_links
 
     result_json = {
         "responseData": {
