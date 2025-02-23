@@ -515,6 +515,39 @@ def quiz(history):
     quiz_questions = query_openai(QUIZ_PROMPT.format(history=history), history)
     return quiz_questions
 
+def general(user_query):
+    content = {}
+    explanation = query_openai(TEXT_PROMPT, user_query)
+    type = "text"
+    tool = query_openai(TOOL_PROMPT, user_query)
+    if tool == "Manim":
+        type = "Manim"
+        code = codegen_openai(MANIM_PROMPT, user_query)
+        print(code)
+        # Execute the generated code
+        run_result, video_path = run_generated_code(
+            clean_code(extract_code(code)))
+        # Build the JSON response in the required format
+        if run_result.get("execution_type") == "manim":
+            content["video_path"] = video_path
+    elif tool == "Plotly":
+        type = "code"
+        code = codegen_openai(PLOTLY_PROMPT, user_query)
+        content["Plotly"] = code
+    else:
+        type = "code"
+        code = codegen_openai(CODE_PROMPT, user_query)
+        print(code)
+        content = append_code_to_content(content, code)
+
+    result_json = {
+        "responseData": {
+            "type": type,
+            "content": content,
+            "explanation": explanation
+        }
+    }
+    print(json.dumps(result_json, indent=4))
 
 def main():
     user_input = input("Enter your query: ")
@@ -542,6 +575,9 @@ def main():
         elif subject == "Physics":
             print("This is a Physics-related query.")
             return phyChem(user_input)
+        else:
+            print("General subject.")
+            return general(user_input)
     else:
         print("Input not related to tutoring.")
 
