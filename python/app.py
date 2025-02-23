@@ -429,11 +429,11 @@ def math(user_query):
             clean_code(extract_code(code)))
         # Build the JSON response in the required format
         if run_result.get("execution_type") == "manim":
-            content["video_path"] = video_path
+            content = video_path
     elif tool == "Plotly":
         type = "code"
         code = codegen_openai(PLOTLY_PROMPT, user_query)
-        content["Plotly"] = code
+        content = code
     else:
         type = "code"
         code = codegen_openai(CODE_PROMPT, user_query)
@@ -464,11 +464,10 @@ def phyChem(user_query):
             clean_code(extract_code(code)))
         # Build the JSON response in the required format
         if run_result.get("execution_type") == "manim":
-            content["Manim"] = video_path
+            content = video_path
     else:
         type = "code"
         code = codegen_openai(CODE_PROMPT, user_query)
-        print(code)
         content = append_code_to_content(content, code)
 
     result_json = {
@@ -484,7 +483,6 @@ def phyChem(user_query):
 def youtube_links(user_query):
     content = {}
     explanation = query_openai(TEXT_PROMPT, user_query)
-    content["explanation"] = explanation
     links = query_perplexity(LINK_PROMPT, user_query)
 
     try:
@@ -501,7 +499,7 @@ def youtube_links(user_query):
     except (json.JSONDecodeError, AttributeError):
         youtube_links = []
 
-    content["links"] = youtube_links
+    content = youtube_links
 
     result_json = {
         "responseData": {
