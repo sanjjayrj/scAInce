@@ -20,7 +20,7 @@ export async function POST(request) {
     
     // Parse JSON from Python service
     const data = await response.json();
-
+    
     // Return the Python API's JSON response to the client
     return new Response(JSON.stringify(data), {
       status: 200,

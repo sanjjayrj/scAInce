@@ -8,27 +8,30 @@ import LocalVideoReply from "./LocalVideoReply";
 
 export default function BotReply({ message }) {
   console.log("BotReply message:", message);
+  const type = message.responseData.type;
+  const content = message.responseData.content;
 
-  switch (message.type) {
+  console.log("BotReply type:", type);
+  switch (type) {
     case "text":
-      return <TextReply content={message.content} />;
+      return <TextReply content={content} />;
 
-    case "video":
-      return <VideoReply url={message.content} />;
+    case "Manim":
+      return <VideoReply url={content} />;
 
     case "code":
       return (
         <div>
-          <CodeReply code={message.content} />
-          <TextReply content={message.explanation} />
+          <CodeReply code={content} />
+          <TextReply content={explanation} />
         </div>
       );
 
     case "quiz":
-      return <QuizReply chatHistory={message.content} />;
+      return <QuizReply chatHistory={content} />;
 
     case "localVideo":
-      return <LocalVideoReply filepath={message.content} />;
+      return <LocalVideoReply filepath={content} />;
 
     default:
       return <div>Unknown bot reply type.</div>;

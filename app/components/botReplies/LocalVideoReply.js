@@ -1,9 +1,8 @@
-// app/components/botReplies/LocalVideoReply.js
-
 import React from 'react';
 import styles from "./LocalVideoReply.module.css";
 
 export default function LocalVideoReply({ filepath }) {
+  console.log("LocalVideoReply filepath:", filepath);
   return (
     <div className={styles.localVideoReply}>
       <video controls style={{ width: "100%" }}>

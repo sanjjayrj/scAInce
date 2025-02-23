@@ -6,6 +6,7 @@ import openai
 import subprocess
 from dotenv import load_dotenv
 import requests
+import shutil
 
 from pydantic import BaseModel
 from fastapi import FastAPI, HTTPException
@@ -174,10 +175,25 @@ def run_generated_code(code):
 
                 output_log = proc.stdout + "\n" + proc.stderr
 
-                video_path = os.getcwd() + "/media/temp_generated/480p15/" + scene_class + ".mp4"
+                original_video_path = os.path.join(
+                    os.getcwd(), "media", "videos", "temp_generated", "480p15", f"{scene_class}.mp4"
+                )
+
+                destination_dir = os.path.join(os.getcwd(), "..", "app", "public", "videos")
+                return_dir = os.path.join("videos", f"{scene_class}.mp4")
+
+                os.makedirs(destination_dir, exist_ok=True)  # Ensure directory exists
+                final_video_path = os.path.join(destination_dir, f"{scene_class}.mp4")
+
+                if os.path.exists(original_video_path):
+                    print(f"[DEBUG] Moving video from {original_video_path} to {final_video_path}")
+                    shutil.move(original_video_path, final_video_path)
+                else:
+                    print("[WARNING] Generated video not found at:", original_video_path)
+
 
                 # print(f"[DEBUG] Video Path: {video_path if video_path != 'Not found' else 'No output found'}")
-                return {"execution_type": "manim", "output_log": output_log, "video_path": video_path}, video_path
+                return {"execution_type": "manim", "output_log": output_log, "video_path": return_dir}, return_dir
 
             else:
                 print("[DEBUG] No Scene class found. Skipping Manim execution.")
@@ -188,7 +204,7 @@ def run_generated_code(code):
         output_log = proc.stdout + "\n" + proc.stderr
 
         print("[DEBUG] Python script execution completed.")
-        return {"execution_type": "python", "output_log": output_log}, video_path
+        return {"execution_type": "python", "output_log": output_log}, return_dir
 
     except subprocess.CalledProcessError as e:
         print("[ERROR] Execution failed:", e)
@@ -445,7 +461,7 @@ def math(user_query):
         }
     }
     print(json.dumps(result_json, indent=4))
-
+    return result_json
 
 def phyChem(user_query):
     content = {}
@@ -475,6 +491,7 @@ def phyChem(user_query):
         }
     }
     print(json.dumps(result_json, indent=4))
+    return result_json
 
 
 def youtube_links(user_query):
@@ -506,6 +523,7 @@ def youtube_links(user_query):
         }
     }
     print(json.dumps(result_json, indent=4))
+    return result_json
 
 
 def quiz(history):
@@ -545,6 +563,7 @@ def general(user_query):
         }
     }
     print(json.dumps(result_json, indent=4))
+    return result_json
 
 def main():
     user_input = input("Enter your query: ")
