@@ -548,14 +548,10 @@ def main():
         print("Input not related to tutoring.")
 
 
-if __name__ == "__main__":
-    main()
-
-
 app = FastAPI(title="Concept Explanation API", version="1.0")
 
 @app.post("/chat")
-def chat_endpoint(request: ChatRequest):
+def chat_endpoint(request):
     """
     POST /chat
     JSON body: { "prompt": "...", "mode": "explain" or "visual" }
@@ -575,7 +571,7 @@ def chat_endpoint(request: ChatRequest):
     #     raise HTTPException(status_code=500, detail=str(e))
     
 @app.post("/quiz")
-def chat_endpoint(request: ChatRequest):
+def chat_endpoint(request):
     """
     POST /chat
     JSON body: { "prompt": "...", "mode": "explain" or "visual" }
@@ -586,5 +582,3 @@ def chat_endpoint(request: ChatRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-if __name__ == "__main__":
-    main()
