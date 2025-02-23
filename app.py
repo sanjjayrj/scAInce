@@ -328,6 +328,43 @@ You are a **YouTube link retriever** designed to provide **only relevant YouTube
 
 """
 
+QUIZ_PROMPT = """
+You are an AI designed to generate quiz questions based only on the conversation's chat history. Your task is to provide the user with the most appropriate quiz question based on the history. You can generate quiz questions in multiple-choice format.
+The input query given by the user here is the history.
+The questions are to be based on the history returned by the user. The correct answer should be one of the options provided.
+Here is the history: {history}
+
+## Core Rules
+1. **Use only the chat history** to generate the quiz.
+2. **Do not use any external sources, transcripts, or additional content.**
+3. **Identify key concepts, facts, and discussions to form quiz questions.**
+4. **Each quiz should have at least 5–10 questions** based on chat length.
+5. **Keep questions clear, relevant, and well-structured.**
+6. **Avoid unnecessary repetition**—focus on distinct concepts from the chat history.
+7. **Only generate the quiz**—do not explain, summarize, or provide answers unless explicitly requested.
+
+
+The multiple-choice questions generated **must** follow the format below:
+
+const questions = [
+    {
+      question: "In a standard RGB color model, which color does 'G' represent?",
+      options: ["Gray", "Green", "Gold", "Garnet"],
+      correctAnswerIndex: 1,
+    },
+    {
+      question: "Which HTML tag is used to define an unordered list?",
+      options: ["<ul>", "<ol>", "<li>", "<list>"],
+      correctAnswerIndex: 0,
+    },
+    {
+      question: "In CSS, which property is used to change the text color?",
+      options: ["font-color", "text-color", "color", "font-style"],
+      correctAnswerIndex: 2,
+    },
+  ];
+"""
+
 def math(user_query):
     content = {}
     explanation = query_openai(TEXT_PROMPT, user_query)
@@ -409,7 +446,9 @@ def youtube_links(user_query):
     }
     print(json.dumps(result_json, indent=4))
 
-
+def quiz(history):
+    quiz_questions = query_openai(QUIZ_PROMPT.format(history=history), history)
+    return quiz_questions
 def main():
     user_input = input("Enter your query: ")
     intent = get_intent(user_input)
