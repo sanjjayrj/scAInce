@@ -625,6 +625,9 @@ def chat_endpoint(request: ChatRequest):
             elif subject == "Physics":
                 print("This is a Physics-related query.")
                 return phyChem(user_input)
+            else:
+                print("General subject.")
+                return general(user_input)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
