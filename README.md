@@ -1,6 +1,8 @@
 # ScAInce — your AI-powered study buddy
 
-> ScAInce is a visual-first AI tutor that explains tough topics step-by-step, verifies formulas, and generates interactive visualizations (and animations) to make learning stick.
+ScAInce is a visual-first AI tutor that explains tough topics step-by-step, verifies formulas, and generates interactive visualizations (and animations) to make learning stick.
+
+> Three days after learning, people typically recall 10–20% of text/audio vs ~65% of visual content. ScAInce leans into that strength with code-driven visuals and animations.
 
 ![ScAInce Demo](docs/example.jpg)
 
