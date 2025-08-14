@@ -2,6 +2,7 @@
 
 > ScAInce is a visual-first AI tutor that explains tough topics step-by-step, verifies formulas, and generates interactive visualizations (and animations) to make learning stick.
 
+![ScAInce Demo](docs/example.jpg)
 
 ## ✨ Features
 
