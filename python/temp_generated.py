@@ -1,15 +1,18 @@
 from manim import *
 
-class PiezoelectricEffect(Scene):
+class QuadraticFormulaVisualization(Scene):
     def construct(self):
-        crystal = Rectangle(width=4, height=2, color=BLUE).shift(LEFT*3)
-        arrows = VGroup(
-            Arrow(start=LEFT, end=RIGHT, color=YELLOW).shift(UP*0.5),
-            Arrow(start=LEFT, end=RIGHT, color=YELLOW).shift(DOWN*0.5)
-        ).shift(RIGHT*3)
+        axes = Axes(x_range=[-10, 10, 1], y_range=[-10, 10, 1], axis_config={"include_numbers": True})
+        quadratic_graph = axes.plot(lambda x: x**2 - 4*x + 3, color=BLUE)
+        roots = [-1, 3]
+        root_dots = [Dot(axes.coords_to_point(x, 0), color=RED) for x in roots]
+        labels = VGroup(
+            MathTex("x = 1").next_to(root_dots[0], DOWN),
+            MathTex("x = 3").next_to(root_dots[1], DOWN)
+        )
+
+        equation = MathTex("x^2 - 4x + 3 = 0").to_edge(UP)
         
-        self.play(FadeIn(crystal))
-        self.wait(1)
-        self.play(crystal.animate.shift(RIGHT*6).set_color(RED), run_time=2)
-        self.play(FadeIn(arrows))
-        self.wait(2)
+        self.add(axes, quadratic_graph, equation)
+        self.play(*[FadeIn(dot) for dot in root_dots])
+        self.play(*[Write(label) for label in labels])
